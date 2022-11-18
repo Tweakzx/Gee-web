@@ -5,7 +5,7 @@ import "net/http"
 type HandleFunc func(c *Context)
 
 type Engine struct {
-	router *router
+	router *Router
 }
 
 func New() *Engine {
