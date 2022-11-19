@@ -2,6 +2,8 @@ package gee
 
 import (
 	"log"
+	"net/http"
+	"path"
 )
 
 type RouterGroup struct {
@@ -36,4 +38,23 @@ func (rg *RouterGroup) GET(pattern string, handler HandlerFunc) {
 
 func (rg *RouterGroup) POST(pattern string, handler HandlerFunc) {
 	rg.addRoute("POST", pattern, handler)
+}
+
+func (rg *RouterGroup) createStaticHandler(relativePath string, fs http.FileSystem) HandlerFunc {
+	absolutePath := path.Join(rg.prefix, relativePath)
+	fileServer := http.StripPrefix(absolutePath, http.FileServer(fs))
+	return func(c *Context) {
+		file := c.Param("filepath")
+		if _, err := fs.Open(file); err != nil {
+			c.Status(http.StatusNotFound)
+			return
+		}
+		fileServer.ServeHTTP(c.Writer, c.Req)
+	}
+}
+
+func (rg *RouterGroup) Static(relativePath string, root string) { //将relativePath 映射到某地址
+	handler := rg.createStaticHandler(relativePath, http.Dir(root))
+	urlPattern := path.Join(relativePath, "/*filepath")
+	rg.GET(urlPattern, handler)
 }
