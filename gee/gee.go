@@ -5,11 +5,16 @@ import "net/http"
 type HandleFunc func(c *Context)
 
 type Engine struct {
+	*RouterGroup
 	router *Router
+	groups []*RouterGroup
 }
 
 func New() *Engine {
-	return &Engine{router: newRouter()}
+	engine := &Engine{router: newRouter()}
+	engine.RouterGroup = &RouterGroup{engine: engine}
+	engine.groups = []*RouterGroup{engine.RouterGroup}
+	return engine
 }
 
 func (e *Engine) addRoute(method string, pattern string, handler HandleFunc) {
