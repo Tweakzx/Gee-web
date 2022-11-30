@@ -1,4 +1,4 @@
-module example
+module geeweb-example
 
 go 1.17
 
